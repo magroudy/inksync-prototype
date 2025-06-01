@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hex Dashboard</title>
+  <link rel="stylesheet" href="https://static.hex.site/embed/embedStyles.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #1a2025;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .hex-embed {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .error-message {
+      color: #fefefeec;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .error-message h2 {
+      color: #06a6bf;
+      margin-bottom: 16px;
+    }
+
+    .error-message p {
+      color: #999FA5;
+      margin-bottom: 12px;
+    }
+
+    .error-message a {
+      color: #06a6bf;
+      text-decoration: none;
+    }
+
+    .error-message a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hex-embed">
+      <iframe 
+        width="800" 
+        height="600" 
+        style="border: none;" 
+        src="https://app.hex.tech/0196f12e-0456-7dd8-bd47-269ba3f3c8c5/app/01971b4e-63b9-7005-aae3-598b8a114674/latest?embedded=true"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+        title="Hex Dashboard">
+      </iframe>
+      <a href="https://hex.tech/?embed" target="_blank">
+        <img src="https://static.hex.site/embed/hex-logo-embed.png" alt="Hex - a modern data workspace for collaborative notebooks, data apps, dashboards, and reports."/>
+      </a>
+      
+      <!-- Fallback error message -->
+      <div class="error-message" style="display: none;" id="errorMessage">
+        <h2>Dashboard Loading Issue</h2>
+        <p>If the dashboard doesn't load, you can:</p>
+        <p><a href="https://app.hex.tech/0196f12e-0456-7dd8-bd47-269ba3f3c8c5/app/01971b4e-63b9-7005-aae3-598b8a114674/latest" target="_blank">Open dashboard in new tab</a></p>
+        <p>The iframe may be blocked due to security policies.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Show error message if iframe fails to load
+    const iframe = document.querySelector('iframe');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    iframe.addEventListener('error', function() {
+      errorMessage.style.display = 'block';
+    });
+    
+    // Check if iframe loads successfully after a timeout
+    setTimeout(function() {
+      try {
+        if (!iframe.contentWindow.location.href) {
+          errorMessage.style.display = 'block';
+        }
+      } catch (e) {
+        // Cross-origin error - this is expected, but iframe might still work
+      }
+    }, 5000);
+  </script>
+</body>
+</html> 
