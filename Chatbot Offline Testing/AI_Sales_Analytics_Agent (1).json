@@ -1,0 +1,219 @@
+{
+  "name": "AI Sales Analytics Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bd7f7f7c-1794-45c2-8acf-6346e225bc7b",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -40,
+        -240
+      ],
+      "id": "4542435a-6864-4960-952d-04d102a1d4e1",
+      "name": "Webhook",
+      "webhookId": "bd7f7f7c-1794-45c2-8acf-6346e225bc7b"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract userQuery from webhook body\nconst userQuery = $json.body?.question || $json.question || \"\";\n\n// Paste the entire sales data array here\nconst salesData = [\n  {\n    \"category\": \"Detergents\",\n    \"sku\": \"Liquid\",\n    \"region\": \"Upper Egypt\",\n    \"year\": 2024,\n    \"month\": 12,\n    \"target_volume\": 6578,\n    \"target_value\": 105248,\n    \"actual_volume\": 5758,\n    \"actual_value\": 90252,\n    \"annual_budget_volume\": 86829,\n    \"annual_budget_value\": 1389264,\n    \"ytd_budget_volume\": 86829,\n    \"ytd_budget_value\": 1389264\n  },\n  {\n    \"category\": \"Detergents\",\n    \"sku\": \"Capsules\",\n    \"region\": \"Cairo\",\n    \"year\": 2024,\n    \"month\": 12,\n    \"target_volume\": 14293,\n    \"target_value\": 828994,\n    \"actual_volume\": 15264,\n    \"actual_value\": 848728,\n    \"annual_budget_volume\": 188667,\n    \"annual_budget_value\": 10942686,\n    \"ytd_budget_volume\": 188667,\n    \"ytd_budget_value\": 10942686\n  },\n  {\n    \"category\": \"Beverages\",\n    \"sku\": \"Cola\",\n    \"region\": \"Cairo\",\n    \"year\": 2025,\n    \"month\": 1,\n    \"target_volume\": 8230,\n    \"target_value\": 189290,\n    \"actual_volume\": 8196,\n    \"actual_value\": 185432,\n    \"annual_budget_volume\": 118512,\n    \"annual_budget_value\": 2725776,\n    \"ytd_budget_volume\": 9876,\n    \"ytd_budget_value\": 227148\n  }\n];\n\n// Return the data with userQuery for the next node\nreturn [\n  {\n    json: {\n      userQuery: userQuery,\n      salesData: salesData\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        -240
+      ],
+      "id": "fa6dcfcb-fd36-4bb6-b6b7-3beb47ef9906",
+      "name": "Data Loading"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the sales data and userQuery from the previous node\nconst salesData = $input.item.json.salesData;\nconst userQuery = $input.item.json.userQuery;\n\n// Calculate derived metrics\nconst processedData = salesData.map(record => ({\n  ...record,\n  // Calculate price metrics\n  target_price: record.target_value / record.target_volume,\n  actual_price: record.actual_value / record.actual_volume,\n  // Calculate performance metrics\n  volume_achievement: (record.actual_volume / record.target_volume) * 100,\n  value_achievement: (record.actual_value / record.target_value) * 100,\n  // Add month name for better readability\n  month_name: new Date(record.year, record.month - 1).toLocaleString('default', { month: 'long' })\n}));\n\n// Helper functions for aggregation\nfunction getQuarter(month) {\n  return Math.floor((month - 1) / 3) + 1;\n}\n\n// Monthly aggregation\nconst monthly = {};\nprocessedData.forEach(record => {\n  const key = `${record.year}-${record.month}`;\n  if (!monthly[key]) {\n    monthly[key] = {\n      year: record.year,\n      month: record.month,\n      month_name: record.month_name,\n      total_actual_value: 0,\n      total_actual_volume: 0,\n      total_target_value: 0,\n      total_target_volume: 0\n    };\n  }\n  monthly[key].total_actual_value += record.actual_value;\n  monthly[key].total_actual_volume += record.actual_volume;\n  monthly[key].total_target_value += record.target_value;\n  monthly[key].total_target_volume += record.target_volume;\n});\n\n// Quarterly aggregation\nconst quarterly = {};\nprocessedData.forEach(record => {\n  const quarter = getQuarter(record.month);\n  const key = `${record.year}-Q${quarter}`;\n  if (!quarterly[key]) {\n    quarterly[key] = {\n      year: record.year,\n      quarter: quarter,\n      total_actual_value: 0,\n      total_actual_volume: 0,\n      total_target_value: 0,\n      total_target_volume: 0\n    };\n  }\n  quarterly[key].total_actual_value += record.actual_value;\n  quarterly[key].total_actual_volume += record.actual_volume;\n  quarterly[key].total_target_value += record.target_value;\n  quarterly[key].total_target_volume += record.target_volume;\n});\n\n// Annual aggregation\nconst annual = {};\nprocessedData.forEach(record => {\n  const key = `${record.year}`;\n  if (!annual[key]) {\n    annual[key] = {\n      year: record.year,\n      total_actual_value: 0,\n      total_actual_volume: 0,\n      total_target_value: 0,\n      total_target_volume: 0\n    };\n  }\n  annual[key].total_actual_value += record.actual_value;\n  annual[key].total_actual_volume += record.actual_volume;\n  annual[key].total_target_value += record.target_value;\n  annual[key].total_target_volume += record.target_volume;\n});\n\n// Return the processed data and aggregations with userQuery\nreturn [\n  {\n    json: {\n      userQuery: userQuery,\n      processedData,\n      monthly: Object.values(monthly),\n      quarterly: Object.values(quarterly),\n      annual: Object.values(annual)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -240
+      ],
+      "id": "306358be-ea8b-43dc-86b7-4073b18fe1dc",
+      "name": "Data Processing"
+    },
+    {
+      "parameters": {
+        "jsCode": "const userQuery = $json[\"userQuery\"] || \"\";\n\n// VERY SIMPLE keyword extraction (improve later as needed)\nlet qn_level = \"region\";\nif (/category/i.test(userQuery)) qn_level = \"category\";\nif (/sku/i.test(userQuery)) qn_level = \"sku\";\nif (/total/i.test(userQuery)) qn_level = \"total\";\n\nlet period_type = \"quarter\";\nif (/year/i.test(userQuery)) period_type = \"year\";\nif (/month/i.test(userQuery)) period_type = \"month\";\nif (/ytd|year to date/i.test(userQuery)) period_type = \"ytd\";\n\n// Extract period value (e.g., Q2 2024, 2024, March 2024)\nlet period_value = null;\nconst quarterMatch = userQuery.match(/Q[1-4] ?\\d{4}/i);\nconst yearMatch = userQuery.match(/\\b(20\\d{2})\\b/);\nconst monthMatch = userQuery.match(/\\b(January|February|March|April|May|June|July|August|September|October|November|December) ?(20\\d{2})?\\b/i);\n\nif (quarterMatch) period_value = quarterMatch[0].toUpperCase();\nelse if (monthMatch) period_value = monthMatch[0];\nelse if (yearMatch) period_value = yearMatch[0];\n\nreturn [\n  {\n    json: {\n      ...$json,\n      qn_level,\n      period_type,\n      period_value\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        -240
+      ],
+      "id": "35b86129-2f99-4454-8690-bce716825717",
+      "name": "Query Processing"
+    },
+    {
+      "parameters": {
+        "jsCode": "const userQuery = $json[\"userQuery\"];\nconst processedData = $json[\"processedData\"];\nconst monthly = $json[\"monthly\"];\nconst quarterly = $json[\"quarterly\"];\nconst annual = $json[\"annual\"];\nconst period_value = $json[\"period_value\"];\n\n// Simple analysis for demo - calculate basic metrics\nlet analysisResult = \"\";\n\nif (quarterly && quarterly.length > 0) {\n  const latestQuarter = quarterly[quarterly.length - 1];\n  const achievement = ((latestQuarter.total_actual_value / latestQuarter.total_target_value) * 100).toFixed(1);\n  \n  analysisResult = `Sales Analysis:\\n` +\n    `• Latest Quarter Performance: ${achievement}% of target achieved\\n` +\n    `• Actual Value: ${latestQuarter.total_actual_value.toLocaleString()}\\n` +\n    `• Target Value: ${latestQuarter.total_target_value.toLocaleString()}\\n` +\n    `• Query: \"${userQuery}\"`;\n} else {\n  analysisResult = `I analyzed your query \"${userQuery}\" but couldn't find specific quarterly data. Please try asking about a specific period like \"Q1 2024\" or \"2024 sales\".`;\n}\n\nreturn [\n  {\n    json: {\n      userQuery: userQuery,\n      analysisResult: analysisResult\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        -240
+      ],
+      "id": "8818fd80-c0ea-40d4-ac6f-f8d113b61505",
+      "name": "Business Logic"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "User asked: {{ $json.userQuery }}\n\nAnalysis Result: {{ $json.analysisResult }}\n\nPlease provide a clear, business-friendly explanation of these results and suggest a relevant follow-up question the user might ask.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1060,
+        -240
+      ],
+      "id": "81418d7d-e4f6-4cb1-a159-c065f0ae5fe3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [
+        1060,
+        -40
+      ],
+      "id": "71ccbf4b-e626-4f3c-baf0-b9b5e002fb71",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "EdKJzSHxbd7agyA0",
+          "name": "Anthropic account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}"
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        -240
+      ],
+      "id": "2c6b9f4d-da7b-4ea7-8e61-d0d793a5302a",
+      "name": "Response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Data Loading",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Loading": {
+      "main": [
+        [
+          {
+            "node": "Data Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Processing": {
+      "main": [
+        [
+          {
+            "node": "Query Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Processing": {
+      "main": [
+        [
+          {
+            "node": "Business Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Business Logic": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0276e6f6-592f-4e9d-a51a-26cf0d6973d3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a80d2a991975b6a0d9f17b674a50efda7ecccc15f6c410633abeeca4de3e86f2"
+  },
+  "id": "5KeDA2nF3XyJgEA7",
+  "tags": [
+    {
+      "name": "Prototype",
+      "id": "t3VqHMmP3UIDNdiF",
+      "createdAt": "2025-05-18T18:54:52.676Z",
+      "updatedAt": "2025-05-18T18:54:52.676Z"
+    }
+  ]
+}
