@@ -383,6 +383,8 @@
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
         title="Hex Dashboard">
       </iframe>
+      <!-- Overlay to cover Hex iframe scrollbar -->
+      <div style="position:absolute; top:0; right:0; width:16px; height:calc(100vh - 54px - 40px); background:#1a2025; z-index:20;"></div>
       <!-- Rectangle overlay to cover branding -->
       <div style="position:absolute; left:0; bottom:0; width:100%; height:56px; background:#1a2025; z-index:10;"></div>
     </div>
