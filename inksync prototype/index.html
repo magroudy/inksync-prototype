@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>InkSync Trading Intelligence - Demo Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Inksync fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #06a6bf; /*question border, send button static*/
+      --primary-dark: #fefefeec; /*send button hover*/
+      --teal-dark: #999FA5; /*answer heading and line*/
+      --gray-200: #424445; /*line border header, question border, send button*/
+      --text-color: #fefefeec; /*user input*/
+      --light-text: #424445; /*plan research analyze, question border, send button*/
+      --answer-text: #fefefeec; /*n8n answer, plan research analyze*/
+      --white: #1a2025; /*background, send button, logo*/
+      --shadow-card: 0 1px 3px rgba(6, 166, 191, 0.08), 0 1px 2px -1px rgba(6, 166, 191, 0.04); /*question border, send button*/
+      --radius-md: 12px; 
+      --radius-lg: 16px; 
+      --transition: all 0.2s ease; 
+    }
+    
+    body {
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-color);
+      background: #1a2025; /*background*/
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background-color: #1a2025;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--gray-200);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(8px);
+    }
+    
+    .header .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+    
+    .logo span {
+      font-weight: 400;
+    }
+    
+    .header-title {
+      font-size: 16px;
+      color: var(--teal-dark);
+      font-weight: 300;
+    }
+    
+    .main-container {
+      display: flex;
+      flex: 1;
+      margin-top: 70px;
+      min-height: calc(100vh - 70px - 60px); /* Minimum height, but can grow */
+    }
+    
+    .dashboard-container {
+      width: 75%;
+      background: #1a2025;
+      border-right: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+      /* Remove fixed height - this section will control page length */
+    }
+    
+    .dashboard-placeholder {
+      width: 100%;
+      height: 100%;
+      min-height: 400px; /* Minimum height for the placeholder */
+      background: linear-gradient(135deg, #1a2025 0%, #242a30 100%);
+      border: 2px dashed var(--gray-200);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--teal-dark);
+    }
+    
+    .dashboard-placeholder i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: var(--primary-color);
+    }
+    
+    .dashboard-placeholder h3 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+    
+    .dashboard-placeholder p {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.7;
+    }
+    
+    .chatbot-container {
+      width: 25%;
+      background: #1a2025;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px 16px 16px;
+      box-sizing: border-box;
+      position: fixed;
+      right: 0;
+      top: 70px;
+      height: calc(100vh - 70px - 60px);
+      overflow: hidden;
+    }
+    
+    .chat-box {
+      flex: 1;
+      background: transparent;
+      border-radius: var(--radius-lg);
+      padding: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 16px;
+      overflow-y: auto;
+      min-height: 300px;
+    }
+    
+    .qa-card {
+      background: transparent;
+      margin: 0 0 12px 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: none;
+      box-shadow: none;
+      transition: var(--transition);
+    }
+    
+    .qa-card:last-child {
+      margin-bottom: 0;
+    }
+    
+    .question {
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--teal-dark);
+      margin-bottom: 4px;
+      letter-spacing: -0.01em;
+      background: transparent;
+      border-radius: 8px;
+      padding: 6px 4px;
+      line-height: 1.3;
+    }
+    
+    .answer {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--answer-text);
+      background: transparent;
+      border-radius: 0;
+      padding: 6px 12px;
+      margin-top: 2px;
+      letter-spacing: -0.02em;
+      border-left: 2px solid var(--teal-dark);
+      white-space: pre-line;
+      line-height: 1.4;
+    }
+    
+    .input-area {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      position: relative;
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 10px 40px 10px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-family: 'Roboto', sans-serif;
+      background: var(--white);
+      color: var(--text-color);
+      border: 1.5px solid var(--gray-200);
+      outline: none;
+      transition: border 0.2s;
+      height: 36px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    
+    .chat-input:focus {
+      border: 1.5px solid var(--primary-color);
+      background: #1a2025;
+    }
+    
+    .chat-input::placeholder {
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #526266;
+      opacity: 1;
+    }
+    
+    .send-btn {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      max-width: 30px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: var(--white);
+      cursor: pointer;
+      transition: var(--transition);
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      right: 3px;
+      top: 49%;
+      transform: translateY(-50%);
+    }
+    
+    .send-btn i {
+      font-size: 0.9rem;
+      color: var(--white);
+    }
+    
+    .send-btn:hover {
+      background: var(--primary-dark);
+      color: var(--white);
+    }
+    
+    .footer {
+      background-color: #1a2025;
+      padding: 4px;
+      border-top: 1px solid var(--gray-200);
+      text-align: center;
+      color: var(--teal-dark);
+      font-size: 0.7rem;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Custom scrollbar styling */
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .chat-box::-webkit-scrollbar-track {
+      background: #1a2025;
+    }
+    
+    .chat-box::-webkit-scrollbar-thumb {
+      background: #424445;
+      border-radius: 3px;
+    }
+    
+    .chat-box::-webkit-scrollbar-thumb:hover {
+      background: #999FA5;
+    }
+    
+    /* For Firefox */
+    .chat-box {
+      scrollbar-width: thin;
+      scrollbar-color: #424445 #1a2025;
+    }
+    
+    /* Main page scrollbar styling to match chatbot */
+    body::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    body::-webkit-scrollbar-track {
+      background: #1a2025;
+    }
+    
+    body::-webkit-scrollbar-thumb {
+      background: #424445;
+      border-radius: 3px;
+    }
+    
+    body::-webkit-scrollbar-thumb:hover {
+      background: #999FA5;
+    }
+    
+    /* For Firefox - main page scrollbar */
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: #424445 #1a2025;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .dashboard-container {
+        width: 75%;
+      }
+      .chatbot-container {
+        width: 25%;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+        min-height: calc(100vh - 70px - 60px);
+      }
+      .dashboard-container {
+        width: 100%;
+        min-height: 60vh;
+        border-right: none;
+        border-bottom: 1px solid var(--gray-200);
+        margin-bottom: 40vh; /* Space for fixed chatbot */
+      }
+      .chatbot-container {
+        width: 100%;
+        height: 40vh;
+        position: fixed;
+        bottom: 60px;
+        top: auto;
+        right: 0;
+        left: 0;
+      }
+      .header .container {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .header-title {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <div class="logo">ink<span>sync</span></div>
+      <div class="header-title">User Portal 1.0</div>
+    </div>
+  </header>
+  
+  <div class="main-container">
+    <div class="dashboard-container" style="position:relative; overflow:hidden;">
+      <iframe 
+        class="hex-embed-iframe"
+        style="width:100%; height:100vh; border:none; display:block; background:#1a2025;"
+        src="https://app.hex.tech/0196f12e-0456-7dd8-bd47-269ba3f3c8c5/app/01971b4e-63b9-7005-aae3-598b8a114674/latest?embedded=true"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+        title="Hex Dashboard">
+      </iframe>
+      <!-- Rectangle overlay to cover branding -->
+      <div style="position:absolute; left:0; bottom:0; width:100%; height:56px; background:#1a2025; z-index:10;"></div>
+    </div>
+    
+    <div class="chatbot-container">
+      <div class="chat-box" id="chatBox">
+        <!-- Q&A cards will appear here -->
+      </div>
+      <form class="input-area" id="chatForm" autocomplete="off">
+        <input id="userInput" class="chat-input" type="text" placeholder="Analyze trading data..." autocomplete="off" />
+        <button id="sendBtn" class="send-btn" type="submit"><i class="fa-solid fa-arrow-up"></i></button>
+      </form>
+    </div>
+  </div>
+  
+  <footer class="footer">
+    <div>© 2025 inksync - Commercial Intelligence</div>
+  </footer>
+  
+  <script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const chatForm = document.getElementById('chatForm');
+
+    // Store chat history as array of {q, a}
+    let chatHistory = [];
+
+    function renderChat() {
+      chatBox.innerHTML = '';
+      // Render from first to last (newest at top)
+      for (let i = 0; i < chatHistory.length; i++) {
+        const {q, a, loading} = chatHistory[i];
+        const card = document.createElement('div');
+        card.className = 'qa-card';
+        card.innerHTML = `
+          <div class="question">${q}</div>
+          <div class="answer">${loading ? '<span style="color:#aaa;">...analyzing trading data</span>' : a}</div>
+        `;
+        chatBox.appendChild(card);
+      }
+    }
+
+    async function sendMessage(e) {
+      e.preventDefault();
+      const text = userInput.value.trim();
+      if (!text) return;
+      chatHistory.unshift({q: text, a: '', loading: true});
+      renderChat();
+      userInput.value = '';
+      userInput.focus();
+
+      // n8n webhook URL
+      const webhookUrl = 'https://inksync.app.n8n.cloud/webhook/bd7f7f7c-1794-45c2-8acf-6346e225bc7b';
+
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: text })
+        });
+        const data = await response.json();
+        // Update first message with answer (newest message)
+        let answer = "";
+        
+        // Handle array responses (when n8n returns an array of objects)
+        if (Array.isArray(data) && data.length > 0) {
+          const firstItem = data[0];
+          if (firstItem.answer) {
+            answer = firstItem.answer;
+          } else if (firstItem.response) {
+            answer = firstItem.response;
+          } else if (firstItem.output) {
+            answer = firstItem.output;
+          } else if (firstItem.message) {
+            answer = firstItem.message;
+          }
+        } 
+        // Handle regular object responses
+        else if (data.answer) {
+          answer = data.answer;
+        } else if (data.response) {
+          answer = data.response;
+        } else if (data.output) {
+          answer = data.output;
+        } else if (typeof data === 'string') {
+          answer = data;
+        } else {
+          // Remove any template syntax that might be returned
+          const strData = JSON.stringify(data);
+          answer = strData.replace(/\{\{\s*\$json\.output\s*\}\}/g, "");
+        }
+        
+        chatHistory[0].a = answer;
+        chatHistory[0].loading = false;
+        renderChat();
+      } catch (err) {
+        chatHistory[0].a = '<span style="color:#c00;">Error: Could not reach assistant.</span>';
+        chatHistory[0].loading = false;
+        renderChat();
+      }
+    }
+
+    chatForm.addEventListener('submit', sendMessage);
+  </script>
+</body>
+</html> 
